@@ -1,2 +1,1 @@
-Dev: Ice
-Graphic: Ceri-sama
+Ice x Ceri
