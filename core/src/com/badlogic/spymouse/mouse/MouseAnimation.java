@@ -22,7 +22,6 @@ final class MouseAnimation {
                 mouseAni[i][j] = new TextureRegion(mouseTexture, j * WIDTH, i * HEIGHT, WIDTH, HEIGHT);
             }
         }
-
         curRegion = mouseAni[1][1];
     }
 
@@ -42,8 +41,8 @@ final class MouseAnimation {
 
     static void nextRegion() {
         curCol++;
-        if (mouseAni[curRow].length == curCol) {
-            curCol = curCol % 2;
+        if (curCol == NUM_COL) {
+            curCol %= 2;
         }
         curRegion = mouseAni[curRow][curCol];
     }
