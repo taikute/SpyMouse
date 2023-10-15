@@ -2,65 +2,104 @@ package com.badlogic.spymouse.mouse;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Queue;
-import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.spymouse.Device;
-import com.badlogic.spymouse.InputListener;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.spymouse.helper.*;
+
+import java.util.ArrayList;
 
 public class Mouse {
-    private final Texture mouseTexture = new Texture("Spy_Mouse_icon.png");
-    private final float frameDuration = 0.3F;
+    public enum Status {
+        STAND, MOVE
+    }
     
-    private final Rectangle hitBox;
-    private final Queue<Vector2> movePoints = new Queue<>();
+    public Status status = Status.STAND;
+    
+    private final MyRectangle hitBox;
+    private final Texture moveStepTexture = new Texture("Spy_Mouse_icon.png");
+    
+    private final TextureAtlas mouseAtlas = new TextureAtlas("atlas_test.txt");
+    private final ArrayList<Animation<AtlasRegion>> animations = new ArrayList<>();
+    private TextureRegion currentRegion = new TextureRegion(moveStepTexture);
+    
+    private final MyQueue<MyPoint> movePoints = new MyQueue<>();
     private final OrthographicCamera camera;
-    private final Viewport viewport;
     
-    private float stateTime;
+    private final float SPEED = Device.HEIGHT / 5F;
+    private final float MIN_DISTANCE;
+    
+    private float stateTime = 0;
     private boolean isDragging = false;
     
-    public Mouse(float x, float y, OrthographicCamera camera, Viewport viewport) {
-        hitBox = new Rectangle(x + 50, y + 10, 100, 60);
-        MouseAnimation.init();
-        stateTime = frameDuration;
-        
+    public Mouse(float x, float y, OrthographicCamera camera) {
+        hitBox = new MyRectangle(x, y, 100, 60);
         this.camera = camera;
-        this.viewport = viewport;
+        
+        MIN_DISTANCE = hitBox.center().dst(hitBox.x, hitBox.y);
+        
+        // Fill animations
+        for (int i = 0; i < 5; i++) {
+            Animation<AtlasRegion> animation = new Animation<>(0.3F, mouseAtlas.findRegions("mouse_" + i));
+            animation.setPlayMode(Animation.PlayMode.LOOP);
+            animations.add(i, animation);
+        }
     }
     
     // Call in render()
-    public void update(float delta, SpriteBatch batch) {
+    public void update(float delta) {
         updateMovePoints();
-        if (movePoints.notEmpty()) {
-            changeFrame(delta);
-            setAnimation();
-            updateMousePosition(delta, Device.HEIGHT / 5);
+        
+        // Set status
+        if (movePoints.isEmpty()) {
+            status = Status.STAND;
         } else {
-            resetStateTime();
+            status = Status.MOVE;
         }
-        draw(batch);
+        
+        if (status == Status.MOVE) {
+            // Calculator degree
+            float deltaX = movePoints.first().x - hitBox.center().x;
+            float deltaY = movePoints.first().y - hitBox.center().y;
+            int degree = getDegree(deltaX, deltaY);
+            
+            // Get region
+            stateTime += delta;
+            currentRegion = animations.get(getAnimationIndex(degree)).getKeyFrame(stateTime);
+            
+            // Flip region
+            if (degree < 0) {
+                currentRegion.flip(!currentRegion.isFlipX(), false);
+            } else {
+                currentRegion.flip(currentRegion.isFlipX(), false);
+            }
+            
+            // Update mouse position
+            float distance = hitBox.center().dst(movePoints.first());
+            float duration = distance / SPEED;
+            hitBox.x += (movePoints.first().x - hitBox.x - hitBox.width / 2) / duration * delta;
+            hitBox.y += (movePoints.first().y - hitBox.y - hitBox.height / 2) / duration * delta;
+            if (distance < SPEED * delta) {
+                movePoints.remove();
+            }
+        } else {
+            // STAND
+            currentRegion = new TextureRegion(moveStepTexture);
+        }
     }
     
-    public Rectangle getHitBox() {
+    public MyRectangle getHitBox() {
         return hitBox;
     }
     
-    public Vector2 getCenter(Rectangle rectangle) {
-        return new Vector2(rectangle.x + rectangle.width / 2, rectangle.y + rectangle.height / 2);
-    }
-    
-    private void draw(SpriteBatch batch) {
-        batch.begin();
-        if (movePoints.notEmpty()) {
-            for (Vector2 point : movePoints) {
-                batch.draw(mouseTexture, point.x - 7, point.y - 7, 15, 15);
-            }
+    public void draw(SpriteBatch batch) {
+        for (MyPoint point : movePoints.toList()) {
+            batch.draw(moveStepTexture, point.x - 7, point.y - 7, 15, 15);
         }
-        batch.draw(MouseAnimation.getRegion(), hitBox.x - 50, hitBox.y - 10, 200, 150);
-        batch.end();
+        batch.draw(currentRegion, hitBox.x - 50, hitBox.y - 10, 200, 150);
     }
     
     private int getAnimationIndex(int degree) {
@@ -93,64 +132,32 @@ public class Mouse {
         }
     }
     
-    private void setAnimation() {
-        float deltaX = movePoints.first().x - getCenter(hitBox).x;
-        float deltaY = movePoints.first().y - getCenter(hitBox).y;
-        int degree = getDegree(deltaX, deltaY);
-        MouseAnimation.setFlipX(degree <= 0);
-        MouseAnimation.setAnimation(getAnimationIndex(degree));
-    }
-    
-    private void changeFrame(float delta) {
-        if (stateTime >= frameDuration) {
-            MouseAnimation.nextRegion();
-            stateTime = 0;
-        } else {
-            stateTime += delta;
-        }
-    }
-    
-    private void resetStateTime() {
-        stateTime = frameDuration;
-    }
-    
-    private void updateMousePosition(float delta, int speed) {
-        float distance = getCenter(hitBox).dst(movePoints.first());
-        float duration = distance / speed;
-        hitBox.x += (movePoints.first().x - hitBox.x - hitBox.width / 2) / duration * delta;
-        hitBox.y += (movePoints.first().y - hitBox.y - hitBox.height / 2) / duration * delta;
-        if (distance < speed * delta) {
-            movePoints.removeFirst();
-        }
-    }
-    
     private void updateMovePoints() {
         if (InputListener.getNumDown() == 1 && InputListener.getCurPointer() == 0) {
-            Vector2 fingerPosition = InputListener.getPosition(0, camera, viewport);
-            if (hitBox.contains(fingerPosition)) {
-                if (!isDragging) {
-                    movePoints.clear();
-                    isDragging = true;
-                }
-            }
+            //Unproject
+            Vector3 v3 = camera.unproject(InputListener.getPosition().toV3());
+            MyPoint fingerPosition = new MyPoint(v3.x, v3.y);
+            
             if (isDragging) {
-                float distance;
+                MyPoint lastPoint;
                 if (movePoints.isEmpty()) {
-                    distance = getCenter(hitBox).dst(fingerPosition);
+                    lastPoint = hitBox.center();
                 } else {
-                    distance = movePoints.last().dst(fingerPosition);
+                    lastPoint = movePoints.last();
                 }
-                if (distance > getCenter(hitBox).dst(hitBox.x, hitBox.y)) {
-                    movePoints.addLast(fingerPosition);
+                float distance = lastPoint.dst(fingerPosition);
+                if (distance > MIN_DISTANCE) {
+                    movePoints.add(fingerPosition);
                 }
+            } else if (hitBox.contains(fingerPosition)) {
+                movePoints.clear();
+                isDragging = true;
             }
         } else isDragging = false;
     }
     
-    
-    
-    
     public void dispose() {
-        MouseAnimation.dispose();
+        moveStepTexture.dispose();
+        mouseAtlas.dispose();
     }
 }

@@ -1,0 +1,75 @@
+atlas_test.png
+size: 2000, 150
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+mouse_0
+  rotate: false
+  xy: 0, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 1
+mouse_0
+  rotate: false
+  xy: 200, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 2
+mouse_1
+  rotate: false
+  xy: 400, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 1
+mouse_1
+  rotate: false
+  xy: 600, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 2
+mouse_2
+  rotate: false
+  xy: 800, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 1
+mouse_2
+  rotate: false
+  xy: 1000, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 2
+mouse_3
+  rotate: false
+  xy: 1200, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 1
+mouse_3
+  rotate: false
+  xy: 1400, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 2
+mouse_4
+  rotate: false
+  xy: 1600, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 1
+mouse_4
+  rotate: false
+  xy: 1800, 0
+  size: 200, 150
+  orig: 200, 150
+  offset: 0, 0
+  index: 2

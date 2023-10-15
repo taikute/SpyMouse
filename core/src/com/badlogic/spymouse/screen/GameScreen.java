@@ -3,48 +3,68 @@ package com.badlogic.spymouse.screen;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
-import com.badlogic.gdx.utils.viewport.Viewport;
-import com.badlogic.spymouse.Device;
-import com.badlogic.spymouse.SpyMouse;
+import com.badlogic.spymouse.MyGame;
+import com.badlogic.spymouse.helper.CameraManager;
+import com.badlogic.spymouse.helper.Device;
+import com.badlogic.spymouse.helper.MyRectangle;
 import com.badlogic.spymouse.mouse.Mouse;
 
 final class GameScreen implements Screen {
-    SpyMouse game;
-    OrthographicCamera camera;
-    Viewport extendViewport;
+    private final MyGame game;
+    private final OrthographicCamera camera;
+    private final Mouse mouse;
+    private final CameraManager cameraManager;
     
-    int WIDTH = Device.WIDTH;
-    int HEIGHT = Device.HEIGHT;
-    
-    Mouse mouse = new Mouse(0, 0, camera, extendViewport);
-    
-    public GameScreen(SpyMouse game) {
+    public GameScreen(MyGame game) {
         this.game = game;
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, Device.WIDTH, Device.HEIGHT);
+        mouse = new Mouse(300, 300, camera);
+        
+        cameraManager = new CameraManager(camera);
     }
     
     @Override
     public void show() {
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false);
-        extendViewport = new ExtendViewport(WIDTH, HEIGHT, camera);
+        System.out.println("On GameScreen");
     }
+    
+    int count = 0;
     
     @Override
     public void render(float delta) {
         ScreenUtils.clear(Color.WHITE);
-        extendViewport.apply();
         game.batch.setProjectionMatrix(camera.combined);
+        game.shape.setProjectionMatrix(camera.combined);
+        
+        //Update Mouse
+        mouse.update(delta);
+        
         game.batch.begin();
-        game.font.draw(game.batch, "Game Screen!", 300, 300);
+        mouse.draw(game.batch);
         game.batch.end();
-        extendViewport.update(WIDTH--, HEIGHT--);
+        
+        game.shape.begin(ShapeRenderer.ShapeType.Line);
+        game.shape.setColor(Color.BLACK);
+        //Draw Hit Box
+        MyRectangle hitBox = mouse.getHitBox();
+        game.shape.rect(hitBox.x, hitBox.y, hitBox.width, hitBox.height);
+        //Draw Map Bounds
+        MyRectangle map = new MyRectangle(0, 0, Device.WIDTH, Device.HEIGHT);
+        game.shape.rect(map.x, map.y, map.width, map.height);
+        game.shape.end();
+        
+        camera.position.set(mouse.getHitBox().center().x, mouse.getHitBox().center().y, 0);
+        camera.update();
+        
+        cameraManager.zoomApply();
     }
     
     @Override
     public void resize(int width, int height) {
-        extendViewport.update(width, height);
+    
     }
     
     @Override
@@ -64,6 +84,6 @@ final class GameScreen implements Screen {
     
     @Override
     public void dispose() {
-    
+        mouse.dispose();
     }
 }

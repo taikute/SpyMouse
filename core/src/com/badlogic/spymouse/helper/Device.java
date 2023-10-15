@@ -1,4 +1,4 @@
-package com.badlogic.spymouse;
+package com.badlogic.spymouse.helper;
 
 import com.badlogic.gdx.Gdx;
 
