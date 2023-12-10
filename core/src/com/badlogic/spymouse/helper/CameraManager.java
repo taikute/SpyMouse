@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
-public class CameraManager {
+public final class CameraManager {
     private final OrthographicCamera camera;
     private final Matrix4 matrix4;
     private float preDistance = 0;
@@ -17,7 +17,7 @@ public class CameraManager {
         matrix4.set(camera.projection).mul(camera.view);
     }
     
-    public boolean isIn(MyPoint p) {
+    public boolean isIn(Point p) {
         return isIn(p.toV3());
     }
     
@@ -31,9 +31,9 @@ public class CameraManager {
     }
     
     public void zoomApply() {
-        if (InputListener.getNumDown() == 2) {
-            MyPoint pointer1 = InputListener.getPosition(0);
-            MyPoint pointer2 = InputListener.getPosition(1);
+        if (Listener.getNumDown() == 2) {
+            Point pointer1 = Listener.getDraggedPosition(0);
+            Point pointer2 = Listener.getDraggedPosition(1);
             if (pointer1 != null && pointer2 != null) {
                 float curDistance = pointer1.dst(pointer2);
                 
