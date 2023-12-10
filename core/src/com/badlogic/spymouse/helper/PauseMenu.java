@@ -1,10 +1,8 @@
 package com.badlogic.spymouse.helper;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.spymouse.MyGame;
 import com.badlogic.spymouse.screen.menu.MainMenuScreen;
@@ -83,12 +81,6 @@ public final class PauseMenu implements Disposable {
             effectSwapButton.draw(game.baseBatch, effectOffImage);
         }
         game.baseBatch.end();
-        
-        game.baseShape.begin(ShapeRenderer.ShapeType.Line);
-        game.baseShape.setColor(Color.BLACK);
-        bgInner.draw(game.baseShape);
-        bgBounds.draw(game.baseShape);
-        game.baseShape.end();
         
         // Button listener
         if (quitButton.isPress()) {

@@ -133,6 +133,7 @@ public final class FastCat extends BaseCat {
     
     @Override
     public void dispose() {
-    
+        IDLE_GHOST.dispose();
+        CHASE_GHOST.dispose();
     }
 }

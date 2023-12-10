@@ -1,27 +1,18 @@
 package com.badlogic.spymouse.map.manager;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.spymouse.helper.Point;
 import com.badlogic.spymouse.helper.Polygon;
-import com.badlogic.spymouse.helper.Rectangle;
-
-import java.util.ArrayList;
 
 public abstract class BaseMap {
-    private final static TextureAtlas itemAtlas = new TextureAtlas("item.txt");
-    private final static AtlasRegion wallRegion = itemAtlas.findRegion("wall");
+    private final static AtlasRegion wallRegion = MyItem.WALL.getRegion();
     
     protected int[][] grid;
     
     private final Point mouseStartingPoint;
-    protected final Rectangle mapArea = new Rectangle();
     protected final Polygon moveArea = new Polygon();
-    //protected final Polygon secretArea = new Polygon();
-    protected final ArrayList<ArrayList<Locations>> layers = new ArrayList<>();
-    protected final ArrayList<Polygon> hitObjects = new ArrayList<>();
     
     protected BaseMap(Point mouseStartingPoint) {
         this.mouseStartingPoint = mouseStartingPoint;
@@ -51,10 +42,6 @@ public abstract class BaseMap {
     
     public static BaseMap curMap;
     
-    public Polygon getMoveArea() {
-        return curMap.moveArea;
-    }
-    
     public Point getMouseStartingPoint() {
         return curMap.mouseStartingPoint.copy();
     }
@@ -79,7 +66,6 @@ public abstract class BaseMap {
                     int x = (j + 1) * 100;
                     if (grid[i][j] == 1) {
                         if (Intersector.intersectSegmentRectangle(cat.x, cat.y, mouse.x, mouse.y, new com.badlogic.gdx.math.Rectangle(x, y, 100, 100))) {
-                            System.out.println("ALOOO");
                             return false;
                         }
                     }
@@ -87,9 +73,5 @@ public abstract class BaseMap {
             }
         }
         return true;
-    }
-    
-    public ArrayList<Polygon> getHitObject() {
-        return new ArrayList<>(hitObjects);
     }
 }
